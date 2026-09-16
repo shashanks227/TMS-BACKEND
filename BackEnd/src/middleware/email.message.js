@@ -9,6 +9,10 @@ const createTransporter = () => {
             host: 'smtp.gmail.com',
             port: 587,
             secure: false, // Use TLS
+            family: 4, // force IPv4 - some hosts (e.g. Render) can't route outbound IPv6, causing the connection to hang instead of fail
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
             auth: {
                 user: process.env.USER_EMAIL,
                 pass: process.env.USER_PASS_KEY
@@ -22,7 +26,7 @@ const createTransporter = () => {
         // Verify connection
         transporter.verify((error, success) => {
             if (error) {
-            } else {
+                console.error('[createTransporter] verify failed:', error.code, '-', error.message);
             }
         });
 
