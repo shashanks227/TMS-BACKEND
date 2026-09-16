@@ -1,40 +1,9 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-let sendgridTransport;
-try {
-    sendgridTransport = require('nodemailer-sendgrid-transport');
-} catch (e) {
-    sendgridTransport = null;
-}
-
 // Create transporter with detailed error handling
 const createTransporter = () => {
     try {
-        const usingSendGrid = Boolean(process.env.SENDGRID_API_KEY);
-
-        if (usingSendGrid) {
-            if (!sendgridTransport) {
-                return null;
-            }
-
-            const transporter = nodemailer.createTransport(
-                sendgridTransport({
-                    auth: {
-                        api_key: process.env.SENDGRID_API_KEY
-                    }
-                })
-            );
-
-            transporter.verify((error) => {
-                if (error) {
-                } else {
-                }
-            });
-
-            return transporter;
-        }
-
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             host: 'smtp.gmail.com',
@@ -70,23 +39,14 @@ exports.sendOtpEmail = async (email, otp, name = 'User') => {
     try {
         // Validate inputs
         if (!email || !otp) {
+            console.error('[sendOtpEmail] Missing email or otp argument');
             return false;
         }
 
         const fromAddress = process.env.EMAIL_FROM || process.env.USER_EMAIL;
-        const usingSendGrid = Boolean(process.env.SENDGRID_API_KEY);
-
-        if (usingSendGrid) {
-            if (!process.env.SENDGRID_API_KEY) {
-                return false;
-            }
-            if (!fromAddress) {
-                return false;
-            }
-        } else {
-            if (!process.env.USER_EMAIL || !process.env.USER_PASS_KEY) {
-                return false;
-            }
+        if (!process.env.USER_EMAIL || !process.env.USER_PASS_KEY) {
+            console.error('[sendOtpEmail] USER_EMAIL or USER_PASS_KEY env var is not set');
+            return false;
         }
 
         // Check transporter
@@ -95,6 +55,7 @@ exports.sendOtpEmail = async (email, otp, name = 'User') => {
         }
 
         if (!transporter) {
+            console.error('[sendOtpEmail] createTransporter() returned null');
             return false;
         }
 
@@ -189,10 +150,11 @@ exports.sendOtpEmail = async (email, otp, name = 'User') => {
 
         // Send email
         const info = await transporter.sendMail(mailOptions);
-        
+
         return true;
-        
+
     } catch (error) {
+        console.error('[sendOtpEmail] sendMail failed:', error.code, '-', error.message);
         return false;
     }
 };
@@ -213,19 +175,8 @@ exports.sendAccountCreatedEmail = async ({
         }
 
         const fromAddress = process.env.EMAIL_FROM || process.env.USER_EMAIL;
-        const usingSendGrid = Boolean(process.env.SENDGRID_API_KEY);
-
-        if (usingSendGrid) {
-            if (!process.env.SENDGRID_API_KEY) {
-                return false;
-            }
-            if (!fromAddress) {
-                return false;
-            }
-        } else {
-            if (!process.env.USER_EMAIL || !process.env.USER_PASS_KEY) {
-                return false;
-            }
+        if (!process.env.USER_EMAIL || !process.env.USER_PASS_KEY) {
+            return false;
         }
 
         if (!transporter) {
@@ -361,19 +312,8 @@ exports.sendTaskAssignedEmail = async ({ toEmail, toName = 'User', assignedByNam
         }
 
         const fromAddress = process.env.EMAIL_FROM || process.env.USER_EMAIL;
-        const usingSendGrid = Boolean(process.env.SENDGRID_API_KEY);
-
-        if (usingSendGrid) {
-            if (!process.env.SENDGRID_API_KEY) {
-                return false;
-            }
-            if (!fromAddress) {
-                return false;
-            }
-        } else {
-            if (!process.env.USER_EMAIL || !process.env.USER_PASS_KEY) {
-                return false;
-            }
+        if (!process.env.USER_EMAIL || !process.env.USER_PASS_KEY) {
+            return false;
         }
 
         if (!transporter) {
@@ -485,19 +425,8 @@ exports.sendStrikeAssignedEmail = async ({ toEmail, toName = 'User', assignedByN
         }
 
         const fromAddress = process.env.EMAIL_FROM || process.env.USER_EMAIL;
-        const usingSendGrid = Boolean(process.env.SENDGRID_API_KEY);
-
-        if (usingSendGrid) {
-            if (!process.env.SENDGRID_API_KEY) {
-                return false;
-            }
-            if (!fromAddress) {
-                return false;
-            }
-        } else {
-            if (!process.env.USER_EMAIL || !process.env.USER_PASS_KEY) {
-                return false;
-            }
+        if (!process.env.USER_EMAIL || !process.env.USER_PASS_KEY) {
+            return false;
         }
 
         if (!transporter) {
